@@ -2,13 +2,17 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
 import requests
+import pandas as pd
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+import time
 def keyboard(request):
     return JsonResponse(
         {
             'type': 'buttons',
-            'buttons': ['소개','학교','천안볼거리','학사정보']
+            'buttons': ['소개','학교','천안볼거리','학사정보','영화정보']
         }
     )
 @csrf_exempt    
@@ -29,7 +33,7 @@ def message(request):
                 },
                 'keyboard': {
                     'type': 'buttons',
-                    'buttons': ['소개','학교','천안볼거리','학사정보']
+                    'buttons': ['소개','학교','천안볼거리','학사정보','영화정보']
                 }
             })
     elif cafeteria_name == '학교':
@@ -45,7 +49,7 @@ def message(request):
             },
             'keyboard': {
                 'type': 'buttons',
-                'buttons': ['소개','학교','천안볼거리','학사정보']
+                'buttons': ['소개','학교','천안볼거리','학사정보','영화정보']
             }
         })
     elif cafeteria_name == '봄':
@@ -106,9 +110,19 @@ def message(request):
             },
             'keyboard': {
                 'type': 'buttons',
-                'buttons': ['소개','학교','천안볼거리','학사정보']
+                'buttons': ['소개','학교','천안볼거리','학사정보','영화정보']
             }
-        })             
+        })    
+    elif cafeteria_name == '영화정보':
+        return JsonResponse({
+            'message': {
+                'text': '검색할 단어를 선택해줘'+moive('http://www.kobis.or.kr/kobisopenapi/webservice/rest/movie/searchMovieList.json?key=430156241533f1d058c603178cc3ca0e')
+            },
+            'keyboard': {
+                'type': 'buttons',
+                'buttons': ['소개','학교','천안볼거리','학사정보','영화정보']
+            }
+        })                       
                                
     elif cafeteria_name == '학사정보':
         return JsonResponse({
@@ -146,7 +160,7 @@ def message(request):
             },
             'keyboard': {
                 'type': 'buttons',
-                'buttons': ['소개','학교','천안볼거리','학사정보']
+                'buttons': ['소개','학교','천안볼거리','학사정보','영화정보']
             }
         })        
     
@@ -188,8 +202,37 @@ def est(url):
     all=soup.find('div', class_='row-fluid founder')
     column = all.find_all('div',{'class':'span9'})
     result = ''
-    for i,items in enumerate(column):
+    for items in enumerate(column):
         title=items.find('div',{'class':'name bold'}).text
         summary=items.find('p').text
         result += title + "\n" + summary+"\n"
     return result           
+
+def search(search):
+    driver=webdriver.Chrome('/Program Files/chromedriver')
+    driver.get('https://www.google.com')
+    search=driver.find_element_by_css_selector('#lst-ib').send_keys(search)
+    driver.find_element_by_xpath('//*[@id="tsf"]/div[2]/div[3]/center/input[1]').send_keys(Keys.ENTER)#.click()
+    time.sleep(2)    
+
+def moive(URL):
+    page = requests.get(URL)
+    read = json.loads((page.content).decode('utf-8'))
+    movielist = pd.DataFrame()
+    movielist = movielist.append(
+        {
+        '개봉일': '',
+        '제목': '',
+        '장르': '',
+        '제작국가': '',  
+        },
+        ignore_index=True
+    )
+    get_list = len(read['movieListResult']['movieList'])
+    #rint(get_list)
+    for items in range(1,get_list):
+        movielist.ix[items,'개봉일'] = read['movieListResult']['movieList'][items]['movieCd']
+        movielist.ix[items,'제목'] = read['movieListResult']['movieList'][items]['movieNm']
+        movielist.ix[items,'장르'] = read['movieListResult']['movieList'][items]['genreAlt']
+        movielist.ix[items,'제작국가'] = read['movieListResult']['movieList'][items]['repNationNm']
+    return movielist[1:6]                            
