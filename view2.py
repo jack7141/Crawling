@@ -24,7 +24,7 @@ def message(request):
         return JsonResponse({
                 'message': {
                     'text':' 안녕 날 소개할께!!',
-                    'text':'나는 광회봇이고, 내 꿈은 IT왕이 되는거야!!\n 언젠간 멋진 동료들을 이끌고 나도 항해를 할거야!',
+                    'text':'나는 광회봇이고, 이 프로젝트는 Python과 Django로 구현해봤어\n ',
                     'photo': {
                         'url':'http://mblogthumb2.phinf.naver.net/20110612_265/qorwjs_0_1307855937077j3a4i_JPEG/3%C3%B5%B8%B8.jpg?type=w2',
                         'width':640,

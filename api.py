@@ -1,7 +1,6 @@
 import requests
 import json
 import pandas as pd
-from pandas import DataFrame
 def moive(URL):
     page = requests.get(URL)
     read = json.loads(page.content)#크롤링에서와 비슷한데 api를 읽어올때는 json.loads로 해서 읽어온다.
